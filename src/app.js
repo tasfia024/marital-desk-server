@@ -16,6 +16,10 @@ app.use(rateLimit({
     max: 100
 }));
 
+app.get("/", (req, res) => {
+    res.send("MaritalDesk backend server is running...");
+});
+
 app.use("/api/auth", authRoutes);
 
 /* Add more routes here, e.g. /api/users, /api/posts, etc. */

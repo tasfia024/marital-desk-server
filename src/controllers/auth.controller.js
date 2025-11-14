@@ -41,3 +41,18 @@ export async function login(req, res, next) {
         next(err);
     }
 }
+
+
+export async function userProfile(req, res, next) {
+    try {
+        const email = req.user.email;
+        const user = await authService.findUserByEmail(email);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Remove password field if present
+        const { password, ...safeUser } = user;
+        res.json({ user: safeUser });
+    } catch (err) {
+        next(err);
+    }
+}

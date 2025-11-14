@@ -1,14 +1,17 @@
-import express from "express";
-import { register, login } from "../controllers/auth.controller.js";
+import express, { json } from "express";
+import { register, login, userProfile } from "../controllers/auth.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 
+router.post("/register", register);
+router.post("/login", login);
+
+// private api 
 router.get("/me", requireAuth, (req, res) => {
     res.json({ user: req.user });
 });
 
-router.post("/register", register);
-router.post("/login", login);
+router.get("/user-profile", requireAuth, userProfile);
 
 export default router;
