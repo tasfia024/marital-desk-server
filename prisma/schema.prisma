@@ -12,6 +12,7 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  mobile      String?
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

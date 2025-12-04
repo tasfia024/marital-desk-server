@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes.js";
+import maritalDeskRoutes from "./routes/marital-desk.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/marital-desk", maritalDeskRoutes);
 
 /* Add more routes here, e.g. /api/users, /api/posts, etc. */
 
