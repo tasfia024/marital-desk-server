@@ -12,8 +12,31 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  mobile      String?
+  mobile    String?
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model KaziApplication {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  phone           String   @unique
+  nid             String   @unique
+  registrationNo  String   @unique
+  fatherName      String
+  motherName      String
+  dateOfBirth     DateTime
+  gender          String
+  religion        String
+  address         String
+  officeAddress   String
+  district        String
+  upazila         String
+  photo           String?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
