@@ -7,6 +7,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MaritalStatus {
+  pending
+  married
+  divorced
+}
+
+enum ProposalStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum ApprovalStatus {
+  pending
+  checked
+  approved
+  rejected
+}
+
+
+/// ===== MODELS =====
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
@@ -22,7 +43,7 @@ model User {
   gender    String?
   image     String?
   nid       String?   @unique
-  status    String?   @db.VarChar(50)
+  status    String?   @db.VarChar(50) @default("active")
 }
 
 model KaziApplication {
@@ -45,4 +66,43 @@ model KaziApplication {
   status         String   @default("pending")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model MarriageApplication {
+  id String @id @default(uuid())
+
+  groomId          String
+  groomFather      String
+  groomMother      String
+  groomReligion    String
+  groomOccupation  String
+  groomEducation   String
+  groomAddress     String
+
+  brideId          String
+  brideFather      String
+  brideMother      String
+  brideOccupation  String
+  brideEducation   String
+  brideReligion    String
+  brideAddress     String
+
+  kaziId            String?
+
+  proposalDate     DateTime?
+  marriageDate     DateTime?
+  approvalDate       DateTime?
+
+  maritalStatus    MaritalStatus  @default(pending)
+  proposalStatus   ProposalStatus @default(pending)
+  approvalStatus   ApprovalStatus @default(pending)
+
+  proposedBy       String
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([groomId])
+  @@index([brideId])
+  @@index([kaziId])
 }
