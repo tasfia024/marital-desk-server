@@ -59,6 +59,10 @@ export async function updateUser(req, res, next) {
         res.json({ user });
     } catch (err) {
         console.log("Error in updateUser controller:", err);
+        // Return 400 for validation errors (NID/Mobile uniqueness)
+        if (err.message.includes("already exists")) {
+            return res.status(400).json({ error: err.message });
+        }
         next(err);
     }
 }

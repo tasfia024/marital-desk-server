@@ -43,6 +43,32 @@ export async function updateUser(id, data) {
 
         if (!exists) return null;
 
+        // Check for unique constraints on nid and mobile
+        if (data.nid) {
+            const nidExists = await prisma.user.findUnique({ where: { nid: data.nid } });
+            if (nidExists && nidExists.id !== id) {
+                throw new Error("NID already exists");
+            }
+        }
+
+        if (data.mobile) {
+            const mobileExists = await prisma.user.findFirst({
+                where: { mobile: data.mobile, NOT: { id } }
+            });
+            if (mobileExists) {
+                throw new Error("Mobile number already exists");
+            }
+        }
+
+        if (data.email) {
+            const emailExists = await prisma.user.findFirst({
+                where: { email: data.email, NOT: { id } }
+            });
+            if (emailExists) {
+                throw new Error("Email already exists");
+            }
+        }
+
         const user = await prisma.user.update({
             where: { id },
             data,
@@ -53,7 +79,7 @@ export async function updateUser(id, data) {
 
     } catch (err) {
         console.log("Update error:", err);
-        return null;
+        throw err;
     }
 }
 
