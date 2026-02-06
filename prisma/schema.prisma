@@ -8,41 +8,41 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   password  String
   name      String?
-  role      String   @default("user")
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   mobile    String?
-  nid       String?  @unique
-  dob       DateTime?
+  address   String?
   age       Int?
+  dob       DateTime?
   gender    String?
   image     String?
-  address   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  nid       String?   @unique
+  status    String?   @db.VarChar(50)
 }
 
 model KaziApplication {
-  id              String   @id @default(uuid())
-  name            String
-  email           String   @unique
-  phone           String   @unique
-  nid             String   @unique
-  registrationNo  String   @unique
-  fatherName      String
-  motherName      String
-  dateOfBirth     DateTime
-  gender          String
-  religion        String
-  address         String
-  officeAddress   String
-  district        String
-  upazila         String
-  photo           String?
-  status          String   @default("pending")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  phone          String   @unique
+  nid            String   @unique
+  registrationNo String   @unique
+  fatherName     String
+  motherName     String
+  dateOfBirth    DateTime
+  gender         String
+  religion       String
+  address        String
+  officeAddress  String
+  district       String
+  upazila        String
+  photo          String?
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
-

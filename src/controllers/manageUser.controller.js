@@ -1,4 +1,5 @@
 import * as authService from "../services/auth.service.js";
+import { handleSingleImageUpload } from "../services/imageUpload.service.js";
 
 export async function allUsers(req, res, next) {
     try {
@@ -34,7 +35,24 @@ export async function updateUser(req, res, next) {
     try {
         const id = req.params.id;
         console.log("Updating user with ID:", id);
+
+        const imagePath = handleSingleImageUpload(
+            req.file,
+            req.body.oldImage // optional
+        );
+        if (imagePath) {
+            req.body.image = imagePath;
+        }
+
         const data = req.body;
+        delete data.oldImage; // cleanup
+
+        let dob = req.body.dob;
+        if (dob) {
+            const date = new Date(dob);
+            data.dob = date;
+        }
+
         const user = await authService.updateUser(id, data);
         if (!user) return res.status(404).json({ error: "User not found" });
         res.json({ user });
