@@ -34,7 +34,8 @@ export async function createUser(req, res, next) {
 export async function updateUser(req, res, next) {
     try {
         const id = req.params.id;
-        console.log("Updating user with ID:", id);
+        const existUser = await authService.getUserById(req.params.id);
+        req.body.oldImage = existUser ? existUser.image : null;
 
         const imagePath = handleSingleImageUpload(
             req.file,
