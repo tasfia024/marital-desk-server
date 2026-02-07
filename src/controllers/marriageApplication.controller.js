@@ -85,9 +85,8 @@ export async function getAllMarriageApplications(req, res, next) {
         const userId = req.user?.userId || req.user?.id;
         const userRole = req.user?.role;
 
-        // Build filter: super_admin sees all, others only see proposals where they are groom or bride
         let whereClause = {};
-        if (userRole !== 'super_admin') {
+        if (userRole !== 'super-admin') {
             whereClause = {
                 OR: [
                     { groomId: userId },
@@ -98,20 +97,16 @@ export async function getAllMarriageApplications(req, res, next) {
 
         const applications = await prisma.marriageApplication.findMany({
             where: whereClause,
-            include: {
-                // Relations will be added via select when needed
-            },
             orderBy: { createdAt: "desc" },
         });
 
-        // Enhance data with user and kazi names
         const enhancedApplications = await Promise.all(
             applications.map(async (app) => {
                 try {
                     const [groom, bride, kazi, proposedByUser] = await Promise.all([
                         prisma.user.findUnique({ where: { id: app.groomId }, select: { id: true, name: true } }),
                         prisma.user.findUnique({ where: { id: app.brideId }, select: { id: true, name: true } }),
-                        app.kaziId ? prisma.kaziApplication.findUnique({ where: { id: app.kaziId }, select: { id: true, name: true } }) : null,
+                        prisma.kaziApplication.findFirst({ where: { kaziId: app.kaziId }, select: { id: true, kaziId: true, name: true } }),
                         prisma.user.findUnique({ where: { id: app.proposedBy }, select: { id: true, name: true } })
                     ]);
 
@@ -152,7 +147,7 @@ export async function getMarriageApplication(req, res, next) {
         const [groom, bride, kazi, proposedByUser] = await Promise.all([
             prisma.user.findUnique({ where: { id: application.groomId } }),
             prisma.user.findUnique({ where: { id: application.brideId } }),
-            application.kaziId ? prisma.kaziApplication.findUnique({ where: { id: application.kaziId } }) : null,
+            application.kaziId ? prisma.kaziApplication.findFirst({ where: { kaziId: application.kaziId } }) : null,
             prisma.user.findUnique({ where: { id: application.proposedBy } })
         ]);
 
@@ -174,6 +169,21 @@ export async function getMarriageApplication(req, res, next) {
 export async function updateMarriageApplication(req, res, next) {
     try {
         const { id } = req.params;
+        const userId = req.user?.id; // Get current user ID from auth middleware
+
+        const application = await prisma.marriageApplication.findUnique({
+            where: { id },
+        });
+
+        if (!application) {
+            return res.status(404).json({ message: "Marriage application not found" });
+        }
+
+        // Check if application is already locked - if so, no more edits allowed
+        if (application.approvalStatus === "checked" || application.approvalStatus === "rejected") {
+            return res.status(403).json({ message: "Cannot edit - Application is locked" });
+        }
+
         const {
             groomFather,
             groomMother,
@@ -189,14 +199,6 @@ export async function updateMarriageApplication(req, res, next) {
             brideAddress,
             kaziId,
         } = req.body;
-
-        const application = await prisma.marriageApplication.findUnique({
-            where: { id },
-        });
-
-        if (!application) {
-            return res.status(404).json({ message: "Marriage application not found" });
-        }
 
         const updatedApplication = await prisma.marriageApplication.update({
             where: { id },

@@ -1,6 +1,14 @@
 import express, { json } from "express";
 import { allUsers, getUser, createUser, updateUser, deleteUser, getUserMaritalStatus } from "../controllers/manageUser.controller.js";
-import { allKaziApplications, getApprovedKazis, createKaziApplication, getKaziApplication, updateKaziApplication, updateKaziStatus } from "../controllers/kaziApplication.controller.js";
+import {
+    allKaziApplications,
+    getApprovedKazis,
+    createKaziApplication,
+    getKaziApplication,
+    updateKaziApplication,
+    updateKaziStatus
+} from "../controllers/kaziApplication.controller.js";
+
 import {
     createMarriageApplication,
     getAllMarriageApplications,
@@ -9,6 +17,12 @@ import {
     updateMarriageApplicationStatus,
     deleteMarriageApplication
 } from "../controllers/marriageApplication.controller.js";
+import {
+    updateKaziApproval,
+    updateKaziRejection,
+    updateAdminApproval,
+    getApprovalApplications
+} from "../controllers/marriageApplicationApproval.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { uploadImage } from "../middlewares/upload.middleware.js";
 const router = express.Router();
@@ -49,5 +63,11 @@ router.get("/marriage-applications/:id", requireAuth, getMarriageApplication);
 router.put("/marriage-applications/:id", requireAuth, updateMarriageApplication);
 router.put("/marriage-applications/:id/update-status", requireAuth, updateMarriageApplicationStatus);
 router.delete("/marriage-applications/:id", requireAuth, deleteMarriageApplication);
+
+// Marriage Approval Application routes
+router.get("/marriage-approval-applications", requireAuth, getApprovalApplications);
+router.put("/marriage-approval-applications/:id/kazi-approval", requireAuth, updateKaziApproval);
+router.put("/marriage-approval-applications/:id/kazi-rejection", requireAuth, updateKaziRejection);
+router.put("/marriage-approval-applications/:id/admin-approval", requireAuth, updateAdminApproval);
 
 export default router;
