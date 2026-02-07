@@ -82,14 +82,54 @@ export async function createMarriageApplication(req, res, next) {
 
 export async function getAllMarriageApplications(req, res, next) {
     try {
+        const userId = req.user?.userId || req.user?.id;
+        const userRole = req.user?.role;
+
+        // Build filter: super_admin sees all, others only see proposals where they are groom or bride
+        let whereClause = {};
+        if (userRole !== 'super_admin') {
+            whereClause = {
+                OR: [
+                    { groomId: userId },
+                    { brideId: userId }
+                ]
+            };
+        }
+
         const applications = await prisma.marriageApplication.findMany({
+            where: whereClause,
             include: {
-                // You can add relations if needed
+                // Relations will be added via select when needed
             },
             orderBy: { createdAt: "desc" },
         });
 
-        res.json({ applications });
+        // Enhance data with user and kazi names
+        const enhancedApplications = await Promise.all(
+            applications.map(async (app) => {
+                try {
+                    const [groom, bride, kazi, proposedByUser] = await Promise.all([
+                        prisma.user.findUnique({ where: { id: app.groomId }, select: { id: true, name: true } }),
+                        prisma.user.findUnique({ where: { id: app.brideId }, select: { id: true, name: true } }),
+                        app.kaziId ? prisma.kaziApplication.findUnique({ where: { id: app.kaziId }, select: { id: true, name: true } }) : null,
+                        prisma.user.findUnique({ where: { id: app.proposedBy }, select: { id: true, name: true } })
+                    ]);
+
+                    return {
+                        ...app,
+                        groomName: groom?.name || 'N/A',
+                        brideName: bride?.name || 'N/A',
+                        kaziName: kazi?.name || 'N/A',
+                        proposedByName: proposedByUser?.name || 'N/A'
+                    };
+                } catch (err) {
+                    console.log("Error enhancing application data:", err);
+                    return app;
+                }
+            })
+        );
+
+        res.json({ applications: enhancedApplications });
     } catch (err) {
         console.log("Error in getAllMarriageApplications:", err);
         next(err);
@@ -102,16 +142,29 @@ export async function getMarriageApplication(req, res, next) {
 
         const application = await prisma.marriageApplication.findUnique({
             where: { id },
-            include: {
-                // You can add relations if needed
-            },
         });
 
         if (!application) {
             return res.status(404).json({ message: "Marriage application not found" });
         }
 
-        res.json({ application });
+        // Enhance data with user and kazi names
+        const [groom, bride, kazi, proposedByUser] = await Promise.all([
+            prisma.user.findUnique({ where: { id: application.groomId } }),
+            prisma.user.findUnique({ where: { id: application.brideId } }),
+            application.kaziId ? prisma.kaziApplication.findUnique({ where: { id: application.kaziId } }) : null,
+            prisma.user.findUnique({ where: { id: application.proposedBy } })
+        ]);
+
+        const enhancedApplication = {
+            ...application,
+            groom,
+            bride,
+            kazi,
+            proposedByUser
+        };
+
+        res.json({ application: enhancedApplication });
     } catch (err) {
         console.log("Error in getMarriageApplication:", err);
         next(err);
@@ -174,7 +227,7 @@ export async function updateMarriageApplication(req, res, next) {
 export async function updateMarriageApplicationStatus(req, res, next) {
     try {
         const { id } = req.params;
-        const { approvalStatus, maritalStatus } = req.body;
+        const { approvalStatus, maritalStatus, proposalStatus } = req.body;
 
         const application = await prisma.marriageApplication.findUnique({
             where: { id },
@@ -189,6 +242,7 @@ export async function updateMarriageApplicationStatus(req, res, next) {
             data: {
                 ...(approvalStatus && { approvalStatus }),
                 ...(maritalStatus && { maritalStatus }),
+                ...(proposalStatus && { proposalStatus }),
                 ...(approvalStatus === "approved" && { approvalDate: new Date() }),
                 ...(maritalStatus === "married" && { marriageDate: new Date() }),
             },
