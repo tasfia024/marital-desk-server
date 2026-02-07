@@ -17,6 +17,31 @@ export async function allKaziApplications(req, res, next) {
     }
 }
 
+export async function getApprovedKazis(req, res, next) {
+    try {
+        const { district, upazila } = req.query;
+
+        let whereClause = { status: "approved" };
+
+        if (district) {
+            whereClause.district = { contains: district, mode: "insensitive" };
+        }
+
+        if (upazila) {
+            whereClause.upazila = { contains: upazila, mode: "insensitive" };
+        }
+
+        const applications = await prisma.kaziApplication.findMany({
+            where: whereClause,
+            orderBy: [{ district: "asc" }, { upazila: "asc" }],
+        });
+
+        res.json({ applications });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export async function createKaziApplication(req, res, next) {
     try {
         const data = req.body;
