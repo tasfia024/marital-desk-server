@@ -1,5 +1,5 @@
 import express, { json } from "express";
-import { allUsers, getUser, createUser, updateUser, deleteUser } from "../controllers/manageUser.controller.js";
+import { allUsers, getUser, createUser, updateUser, deleteUser, getUserMaritalStatus } from "../controllers/manageUser.controller.js";
 import { allKaziApplications, getApprovedKazis, createKaziApplication, getKaziApplication, updateKaziApplication, updateKaziStatus } from "../controllers/kaziApplication.controller.js";
 import {
     createMarriageApplication,
@@ -22,6 +22,7 @@ router.use('/users', (req, res, next) => {
 // User Management routes
 router.get("/users", requireAuth, allUsers);
 router.get("/users/:id", requireAuth, getUser);
+router.get("/users/:id/marital-status", requireAuth, getUserMaritalStatus);
 router.post("/users", requireAuth, createUser);
 // router.put("/users/:id", requireAuth, updateUser);
 router.put(

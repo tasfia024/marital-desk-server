@@ -1,4 +1,5 @@
 import * as authService from "../services/auth.service.js";
+import { prisma } from "../services/prisma.js";
 import { handleSingleImageUpload } from "../services/imageUpload.service.js";
 
 export async function allUsers(req, res, next) {
@@ -74,6 +75,56 @@ export async function deleteUser(req, res, next) {
         if (!user) return res.status(404).json({ error: "User not found" });
         res.json({ message: "User deleted" });
     } catch (err) {
+        next(err);
+    }
+}
+
+export async function getUserMaritalStatus(req, res, next) {
+    try {
+        const userId = req.params.id;
+
+        // Find all marriage applications where this user is groom or bride
+        const marriages = await prisma.marriageApplication.findMany({
+            where: {
+                OR: [
+                    { groomId: userId },
+                    { brideId: userId }
+                ]
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        if (marriages.length === 0) {
+            return res.json({
+                maritalStatus: "Single",
+                marriageCount: 0,
+                divorceCount: 0,
+                details: []
+            });
+        }
+
+        // Count marriages and divorces
+        const marriageCount = marriages.filter(m => m.maritalStatus === "married").length;
+        const divorceCount = marriages.filter(m => m.maritalStatus === "divorced").length;
+
+        // Determine current status: if any active marriage exists, status is "Married"
+        // Otherwise, if divorced records exist, status is "Divorced"
+        // Otherwise status is "Single"
+        let maritalStatus = "Single";
+        if (marriageCount > 0) {
+            maritalStatus = "Married";
+        } else if (divorceCount > 0) {
+            maritalStatus = "Divorced";
+        }
+
+        res.json({
+            maritalStatus,
+            marriageCount,
+            divorceCount,
+            details: marriages
+        });
+    } catch (err) {
+        console.log("Error in getUserMaritalStatus:", err);
         next(err);
     }
 }

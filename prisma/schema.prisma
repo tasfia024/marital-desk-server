@@ -91,7 +91,7 @@ model MarriageApplication {
 
   proposalDate     DateTime?
   marriageDate     DateTime?
-  approvalDate       DateTime?
+  approvalDate     DateTime?
 
   maritalStatus    MaritalStatus  @default(pending)
   proposalStatus   ProposalStatus @default(pending)
