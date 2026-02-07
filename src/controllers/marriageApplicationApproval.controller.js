@@ -22,6 +22,9 @@ export async function getApprovalApplications(req, res, next) {
 
         const applications = await prisma.marriageApplication.findMany({
             where: whereClause,
+            where: {
+                proposalStatus: "accepted"
+            },
             orderBy: { createdAt: "desc" },
         });
 
