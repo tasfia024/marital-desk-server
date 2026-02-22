@@ -7,7 +7,6 @@ export async function getApprovalApplications(req, res, next) {
     try {
         const userId = req.user?.userId || req.user?.id;
         const userRole = req.user?.role;
-        console.log("Fetching approval applications for user:", userId, "with role:", userRole);
 
         let whereClause = {};
         if (userRole !== 'super-admin') {
@@ -32,8 +31,8 @@ export async function getApprovalApplications(req, res, next) {
             applications.map(async (app) => {
                 try {
                     const [groom, bride, kazi, proposedByUser] = await Promise.all([
-                        prisma.user.findUnique({ where: { id: app.groomId }, select: { id: true, name: true } }),
-                        prisma.user.findUnique({ where: { id: app.brideId }, select: { id: true, name: true } }),
+                        prisma.user.findUnique({ where: { id: app.groomId }, select: { id: true, name: true, nid: true } }),
+                        prisma.user.findUnique({ where: { id: app.brideId }, select: { id: true, name: true, nid: true } }),
                         prisma.kaziApplication.findFirst({ where: { kaziId: app.kaziId }, select: { id: true, kaziId: true, name: true } }),
                         prisma.user.findUnique({ where: { id: app.proposedBy }, select: { id: true, name: true } })
                     ]);
@@ -67,8 +66,8 @@ export async function getApprovalApplications(req, res, next) {
 export async function updateKaziApproval(req, res, next) {
     try {
         const { id } = req.params;
-        const userId = req.user?.id;
         const userRole = req.user?.role;
+        const userId = req.user?.userId || req.user?.id;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -82,15 +81,6 @@ export async function updateKaziApproval(req, res, next) {
         const application = await prisma.marriageApplication.findUnique({
             where: { id },
         });
-
-        if (!application) {
-            return res.status(404).json({ message: "Marriage application not found" });
-        }
-
-        // Check if proposal is accepted before approving
-        if (application.proposalStatus !== "accepted") {
-            return res.status(400).json({ message: "Both bride and groom must accept the proposal first" });
-        }
 
         // Check if already checked by kazi
         if (application.approvalStatus === "checked") {
@@ -111,6 +101,7 @@ export async function updateKaziApproval(req, res, next) {
             where: { id },
             data: {
                 approvalStatus: "checked",
+                maritalStatus: "married", // Update marital status to married upon kazi approval
                 marriageDate: new Date(), // Store kazi approval date
             },
         });
@@ -129,7 +120,7 @@ export async function updateKaziApproval(req, res, next) {
 export async function updateKaziRejection(req, res, next) {
     try {
         const { id } = req.params;
-        const userId = req.user?.id;
+        const userId = req.user?.userId || req.user?.id;
         const userRole = req.user?.role;
 
         if (!userId) {
@@ -181,7 +172,7 @@ export async function updateKaziRejection(req, res, next) {
 export async function updateAdminApproval(req, res, next) {
     try {
         const { id } = req.params;
-        const userId = req.user?.id;
+        const userId = req.user?.userId || req.user?.id;
         const userRole = req.user?.role;
 
         if (!userId) {
@@ -189,8 +180,8 @@ export async function updateAdminApproval(req, res, next) {
         }
 
         // Check if user is admin
-        if (userRole !== "admin") {
-            return res.status(403).json({ message: "Only Admin can give final approval" });
+        if (userRole !== "super-admin") {
+            return res.status(403).json({ message: "Only MaritalDesk Admin can give final approval" });
         }
 
         const application = await prisma.marriageApplication.findUnique({

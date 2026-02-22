@@ -23,6 +23,7 @@ import {
     updateAdminApproval,
     getApprovalApplications
 } from "../controllers/marriageApplicationApproval.controller.js";
+import { getMarriageCertificate } from "../controllers/marriageCertificate.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { uploadImage } from "../middlewares/upload.middleware.js";
 const router = express.Router();
@@ -69,5 +70,8 @@ router.get("/marriage-approval-applications", requireAuth, getApprovalApplicatio
 router.put("/marriage-approval-applications/:id/kazi-approval", requireAuth, updateKaziApproval);
 router.put("/marriage-approval-applications/:id/kazi-rejection", requireAuth, updateKaziRejection);
 router.put("/marriage-approval-applications/:id/admin-approval", requireAuth, updateAdminApproval);
+
+// Marriage Certificate routes
+router.get("/marriage-certificates", requireAuth, getMarriageCertificate);
 
 export default router;
