@@ -43,7 +43,10 @@ router.post("/users", requireAuth, createUser);
 router.put(
     "/users/:id",
     requireAuth,
-    uploadImage.single("image"), // image is OPTIONAL
+    uploadImage.fields([
+        { name: "image", maxCount: 1 },
+        { name: "signature", maxCount: 1 }
+    ]),
     updateUser
 );
 router.delete("/users/:id", requireAuth, deleteUser);

@@ -11,6 +11,7 @@ export async function allKaziApplications(req, res, next) {
                 where: { email: req.user?.email }
             });
         }
+
         res.json({ applications });
     } catch (err) {
         next(err);
@@ -68,7 +69,18 @@ export async function getKaziApplication(req, res, next) {
         const { id } = req.params;
         const application = await prisma.kaziApplication.findUnique({ where: { id } });
         if (!application) return res.status(404).json({ message: "Application not found" });
-        res.json({ application });
+
+        // Enhance data with user and kazi names
+        const [kaziUser] = await Promise.all([
+            prisma.user.findUnique({ where: { id: application.kaziId } }),
+        ]);
+
+        const enhancedApplication = {
+            ...application,
+            kaziUser
+        };
+
+        res.json({ application: enhancedApplication });
     } catch (err) {
         next(err);
     }

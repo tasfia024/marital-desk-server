@@ -36,18 +36,34 @@ export async function updateUser(req, res, next) {
     try {
         const id = req.params.id;
         const existUser = await authService.getUserById(req.params.id);
-        req.body.oldImage = existUser ? existUser.image : null;
 
-        const imagePath = handleSingleImageUpload(
-            req.file,
-            req.body.oldImage // optional
-        );
-        if (imagePath) {
-            req.body.image = imagePath;
+        // Handle image upload
+        req.body.oldImage = existUser ? existUser.image : null;
+        if (req.files && req.files.image && req.files.image[0]) {
+            const imagePath = handleSingleImageUpload(
+                req.files.image[0],
+                req.body.oldImage
+            );
+            if (imagePath) {
+                req.body.image = imagePath;
+            }
+        }
+
+        // Handle signature upload
+        req.body.oldSignature = existUser ? existUser.signature : null;
+        if (req.files && req.files.signature && req.files.signature[0]) {
+            const signaturePath = handleSingleImageUpload(
+                req.files.signature[0],
+                req.body.oldSignature
+            );
+            if (signaturePath) {
+                req.body.signature = signaturePath;
+            }
         }
 
         const data = req.body;
         delete data.oldImage; // cleanup
+        delete data.oldSignature; // cleanup
 
         let dob = req.body.dob;
         if (dob) {

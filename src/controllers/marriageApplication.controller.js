@@ -144,11 +144,12 @@ export async function getMarriageApplication(req, res, next) {
         }
 
         // Enhance data with user and kazi names
-        const [groom, bride, kazi, proposedByUser] = await Promise.all([
+        const [groom, bride, kazi, proposedByUser, kaziUser] = await Promise.all([
             prisma.user.findUnique({ where: { id: application.groomId } }),
             prisma.user.findUnique({ where: { id: application.brideId } }),
             application.kaziId ? prisma.kaziApplication.findFirst({ where: { kaziId: application.kaziId } }) : null,
-            prisma.user.findUnique({ where: { id: application.proposedBy } })
+            prisma.user.findUnique({ where: { id: application.proposedBy } }),
+            prisma.user.findUnique({ where: { id: application.kaziId } }),
         ]);
 
         const enhancedApplication = {
@@ -156,7 +157,8 @@ export async function getMarriageApplication(req, res, next) {
             groom,
             bride,
             kazi,
-            proposedByUser
+            proposedByUser,
+            kaziUser
         };
 
         res.json({ application: enhancedApplication });
