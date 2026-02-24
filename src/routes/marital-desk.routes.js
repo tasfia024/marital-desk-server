@@ -24,6 +24,12 @@ import {
     getApprovalApplications
 } from "../controllers/marriageApplicationApproval.controller.js";
 import { getMarriageCertificate } from "../controllers/marriageCertificate.controller.js";
+import {
+    createCheckoutSession,
+    handlePaymentSuccess,
+    verifyPaymentSession,
+    cancelPayment
+} from "../controllers/payment.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { uploadImage } from "../middlewares/upload.middleware.js";
 const router = express.Router();
@@ -76,5 +82,11 @@ router.put("/marriage-approval-applications/:id/admin-approval", requireAuth, up
 
 // Marriage Certificate routes
 router.get("/marriage-certificates", requireAuth, getMarriageCertificate);
+
+// Payment routes
+router.post("/marriage-applications/checkout", requireAuth, createCheckoutSession);
+router.post("/marriage-applications/payment-success", requireAuth, handlePaymentSuccess);
+router.get("/marriage-applications/payment/verify/:sessionId", requireAuth, verifyPaymentSession);
+router.post("/marriage-applications/payment/cancel", requireAuth, cancelPayment);
 
 export default router;
