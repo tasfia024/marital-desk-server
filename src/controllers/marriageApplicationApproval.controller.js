@@ -8,22 +8,24 @@ export async function getApprovalApplications(req, res, next) {
         const userId = req.user?.userId || req.user?.id;
         const userRole = req.user?.role;
 
-        let whereClause = {};
+        let whereClause = { proposalStatus: "accepted" };
         if (userRole !== 'super-admin') {
             whereClause = {
-                OR: [
-                    { groomId: userId },
-                    { brideId: userId },
-                    { kaziId: userId }
+                AND: [
+                    {
+                        OR: [
+                            { groomId: userId },
+                            { brideId: userId },
+                            { kaziId: userId }
+                        ]
+                    },
+                    { proposalStatus: "accepted" }
                 ]
             };
         }
 
         const applications = await prisma.marriageApplication.findMany({
             where: whereClause,
-            where: {
-                proposalStatus: "accepted"
-            },
             orderBy: { createdAt: "desc" },
         });
 

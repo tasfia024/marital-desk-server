@@ -45,7 +45,7 @@ export async function createMarriageApplication(req, res, next) {
         }
 
         // Check if kazi application exists
-        const kazi = await prisma.kaziApplication.findUnique({ where: { id: kaziId } });
+        const kazi = await prisma.kaziApplication.findFirst({ where: { kaziId: kaziId } });
         if (!kazi) {
             return res.status(404).json({ message: "Kazi not found" });
         }

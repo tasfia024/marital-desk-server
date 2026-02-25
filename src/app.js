@@ -9,7 +9,7 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 const app = express();
 
 app.use(helmet());
-app.use(cors({ 
+app.use(cors({
     origin: [
         "http://localhost:5173",
         "https://soft-meerkat-ac0795.netlify.app"
